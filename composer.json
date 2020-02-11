@@ -1,0 +1,21 @@
+{
+    "name": "girafffee/gfl.test",
+    "type": "project",
+    "license": "BeerWare",
+    "authors": [
+        {
+            "name": "Sasha Ivanenko",
+            "email": "sanko200065@gmail.com"
+        }
+    ],
+    "minimum-stability": "dev",
+	"autoload": {
+        "psr-4": {
+            "App\\": "app/",
+	    "Kernel\\": "Kernel/"
+        }
+	},
+    "require": {
+	"phpmailer/phpmailer": "~6.1"
+	}
+}

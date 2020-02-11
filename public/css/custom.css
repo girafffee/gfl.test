@@ -1,0 +1,23 @@
+#search > div{
+    margin-top: 20%;
+    margin-left: 5%;
+}
+#catalog > div{
+    margin-top: 5%;
+}
+#admin-table{
+    margin-top: 100px;
+}
+.row {
+    margin-right: 15px;
+}
+
+#home-main{
+    position: absolute;
+    top: calc(50% - 340px);
+    left: calc(50% - 570px);
+}
+
+#single-book{
+    margin-top: 100px;
+}

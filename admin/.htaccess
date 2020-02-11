@@ -1,0 +1,6 @@
+AuthType Basic
+#название аутентификации
+AuthName "Protected Area"
+#путь к файлу с пользователями и паролями .htpasswd
+AuthUserFile /var/www/gfl.test/admin/.htpasswd
+require valid-user
