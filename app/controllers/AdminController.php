@@ -18,18 +18,71 @@ class AdminController extends BaseController
 
     public function index()
     {
+        $this->setAdmin();
+        $this->content = self::render('admin/all.tpl.php');
+        return $this;
+    }
+
+    public function view($args)
+    {
+        $action = 'view' . ucfirst($args[0]);
+
+        if(method_exists($this, $action))
+        {
+            $this->$action();
+        }
+        else
+        {
+            $this->index();
+        }
+    }
+
+    public function viewBooks()
+    {
         $table = new Books;
-        $books = $table->WhereEqually('status', Books::STATUS_ACTIVE)
-            ->OrderBy('title')
+        $books = $table
+            ->OrderBy('b.title')
             ->Get()
             ->fetchAll(\PDO::FETCH_ASSOC);
 
-        $this->content = self::render ('admin/all.tpl.php', [
+        $this->content = self::render ('admin/books.tpl.php', [
             'books' => $books
         ]);
-        $this->setAdmin();
+
         return $this;
     }
+
+    public function viewAuthors()
+    {
+        $model = new Authors();
+        $authors = $model
+            ->OrderBy('a.name')
+            ->Get()
+            ->fetchAll(\PDO::FETCH_ASSOC);
+
+        $this->content = self::render ('admin/authors.tpl.php', [
+            'authors' => $authors
+        ]);
+
+        return $this;
+    }
+
+    public function viewGenres()
+    {
+        $model = new Genres();
+        $genres = $model
+            ->OrderBy('g.name')
+            ->Get()
+            ->fetchAll(\PDO::FETCH_ASSOC);
+
+        $this->content = self::render ('admin/genres.tpl.php', [
+            'genres' => $genres
+        ]);
+
+        return $this;
+    }
+
+
 
     public function create()
     {
@@ -42,7 +95,7 @@ class AdminController extends BaseController
         $authors_ob = new Authors();
         $authors = $authors_ob->All();
 
-        $this->content = self::render ('admin/single.create.tpl.php', [
+        $this->content = self::render ('admin/book.create.tpl.php', [
             'genres'    => $genres,
             'authors'   => $authors,
         ]);
@@ -55,6 +108,18 @@ class AdminController extends BaseController
         $model = new Books();
 
         foreach ($model->deleteByFields as $col => $value)
+        {
+            $model->Update([$col => $value, 'b.id' => $args[2]]);
+        }
+
+        $this->redirect('admin');
+    }
+
+    public function retrieve($args)
+    {
+        $model = new Books();
+
+        foreach ($model->activeByFields as $col => $value)
         {
             $model->Update([$col => $value, 'id' => $args[2]]);
         }
@@ -71,7 +136,8 @@ class AdminController extends BaseController
             $this->saveBook($args[2]);
 
         $table = new Books;
-        $table->table = 'book_genres bg';
+        $table->table = 'book_genres';
+        $table->alias = 'bg';
 
         $books = $table
             ->SelectWhat([
@@ -108,8 +174,7 @@ class AdminController extends BaseController
         $authors = $authors_ob->All();
 
 
-
-        $this->content = self::render ('admin/single.edit.tpl.php', [
+        $this->content = self::render ('admin/book.edit.tpl.php', [
             'books'     => $books,
             'genres'    => $genres,
             'authors'   => $authors,
@@ -209,7 +274,7 @@ class AdminController extends BaseController
 
         foreach ($data as $col => $value)
         {
-            $model->Update([$col => $value, 'id' => $id]);
+            $model->Update([$col => $value, 'b.id' => $id]);
         }
 
         $this->redirect('admin');

@@ -1,51 +1,40 @@
 <?php
 use Kernel\Router;
-use App\Config;
 ?>
-<section class="container" id="admin-table">
-    <?php if(empty($books)): ?>
-        <div class="alert alert-info" role="alert">
-            Не добавлено еще ни одной книги
+<section id="admin-table" class="container">
+    <div class="d-flex justify-content-around align-items-center">
+        <div class="card text-white bg-info mb-3" style="max-width: 18rem;">
+            <div class="card-header">Управление книгами</div>
+            <div class="card-body">
+                <h5 class="card-title">Primary card title</h5>
+                <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
+                <a href="<?=Router::route('admin_group', [
+                    'object'    => 'books',
+                    'action'    => 'view'
+                ])?>" class="btn btn-light">Перейти...</a>
+            </div>
         </div>
-    <?php else: ?>
-    <table class="table table-hover" >
-        <thead>
-        <tr>
-            <th scope="col"><a href="<?=Router::route('admin_single', [
-                    'object'    => 'book',
-                    'action'    => 'create',
-                    'id'        => ''
-                ])?>" style="text-decoration: none;" class="text-success">Добавить <i class="fas fa-plus-circle"></i></a></th>
-            <th scope="col">#</th>
-            <th scope="col">Название</th>
-            <th scope="col">Дата создания</th>
-            <th scope="col">Действие</th>
-        </tr>
-        </thead>
-        <tbody>
-        <?php for ($count = 0; $count < sizeof($books); $count++): ?>
-            <tr>
-                <td></td>
-                <th scope="row"><?=$count + 1?></th>
-                <td><?=$books[$count]['title']?></td>
-                <td><?=$books[$count]['created_at']?></td>
-                <td>
-                    <a href="<?=Router::route('admin_single', [
-                        'object'    => 'book',
-                        'action'    => 'edit',
-                        'id'        => $books[$count]['id']
-                        ])?>"
-                       title="Edit"><i class="fas fa-edit"></i></a>
-
-                    <a href="javascript:void(0)" title="Delete"
-                       onclick="checkDelete(<?=$books[$count]['id']?>, '<?=$books[$count]['title']?>')">
-                        <i class="fas fa-trash-alt"></i>
-                    </a>
-                </td>
-            </tr>
-        <?php endfor; ?>
-        </tbody>
-    </table>
-
-    <?php endif; ?>
+        <div class="card text-white bg-secondary mb-3" style="max-width: 18rem;">
+            <div class="card-header">Управление авторами</div>
+            <div class="card-body">
+                <h5 class="card-title">Secondary card title</h5>
+                <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
+                <a href="<?=Router::route('admin_group', [
+                    'object'    => 'authors',
+                    'action'    => 'view'
+                ])?>" class="btn btn-light">Перейти...</a>
+            </div>
+        </div>
+        <div class="card text-white bg-success mb-3" style="max-width: 18rem;">
+            <div class="card-header">Управление жанрами</div>
+            <div class="card-body">
+                <h5 class="card-title">Success card title</h5>
+                <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
+                <a href="<?=Router::route('admin_group', [
+                    'object'    => 'genres',
+                    'action'    => 'view'
+                ])?>" class="btn btn-light">Перейти...</a>
+            </div>
+        </div>
+    </div>
 </section>

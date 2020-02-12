@@ -34,7 +34,7 @@ class BaseController
      * @param bool $output
      * @return false|string|null
      */
-    public static function render($tplName, $data = array(), $output = true)
+    public static function render($tplName, $data = array(), $output = self::RENDER_RETURN)
     {
         if(empty($tplName) || $tplName == '')
             return NULL;
@@ -57,6 +57,18 @@ class BaseController
             return $content;
         else
             echo $content;
+    }
+
+    public static function renderPartial($tplName, $data = array())
+    {
+        if(empty($tplName) || $tplName == '')
+            return NULL;
+
+        if(!empty($data))
+            extract($data);
+
+        echo include self::getPathTpl($tplName);
+        exit();
     }
 
     public function __construct($action, $params = NULL)

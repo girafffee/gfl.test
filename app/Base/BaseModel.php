@@ -8,10 +8,12 @@ use App\Lib\PDO_DB;
 
 class BaseModel extends PDO_DB
 {
+
     public $hasOne;
     public $belongsTo;
     public $hasMany;
     public $manyToMany;
+    public $alias;
 
     public $simpleJoin;
 
@@ -34,6 +36,7 @@ class BaseModel extends PDO_DB
     public $addFields;
     public $findField;
     public $deleteByFields;
+    public $activeByFields;
 
     public function simpleJoin($join)
     {
@@ -67,42 +70,31 @@ class BaseModel extends PDO_DB
         return $this;
     }
 
-    public function WhereLike($col, $string, $condition = 'OR')
+
+    private function Like($var, $col, $string)
     {
         $string = trim($string);
 
-        if($string == '' && !preg_match('/(a-zA-ZА-Яа-я)+/', $string))
+        if(trim($string, '%') == '' && !preg_match('/(a-zA-ZА-Яа-я0-9)+/', $string))
+        {
             return $this;
+        }
+        $this->$var[$col][] = "$col LIKE '" . rawurldecode(htmlspecialchars($string)). "'";
 
-        if($this->WhereLike == '')
-        {
-            $this->WhereLike = "$col LIKE '%" . rawurldecode(htmlspecialchars($string)). "%' ";
-        }
-        else
-        {
-            $this->WhereLike .= " $condition $col LIKE '%" . rawurldecode(htmlspecialchars($string)) . "%' ";
-        }
         return $this;
     }
 
-    public function havingLike($col, $string, $condition = 'OR')
+    public function havingLike($col, $string)
     {
-        $string = trim($string);
-
-        if($string == '' && !preg_match('/(a-zA-ZА-Яа-я)+/', $string))
-            return $this;
-
-        if($this->having == '')
-        {
-            $this->having = "$col LIKE '%" . rawurldecode(htmlspecialchars($string)). "%'";
-        }
-        else
-        {
-            $this->having .= " $condition $col LIKE '%" . rawurldecode(htmlspecialchars($string)) . "%'";
-        }
-
+        $this->Like('having', $col, $string);
         return $this;
     }
+    public function WhereLike($col, $string)
+    {
+        $this->Like('WhereLike', $col, $string);
+        return $this;
+    }
+
 
     public function OrderBy($o)
     {
@@ -149,7 +141,7 @@ class BaseModel extends PDO_DB
         else
             $sql .= " * ";
 
-        $sql .= " FROM " . $this->table;
+        $sql .= " FROM " . $this->table . ' as ' .$this->alias;
         $sql .= $this->simpleJoin;
 
         $flagWhere = " WHERE ";
@@ -158,12 +150,19 @@ class BaseModel extends PDO_DB
             $sql .= $flagWhere . $this->Where;
             $flagWhere = " ";
         }
-        if (strlen($this->WhereLike) > 0)
+        if (is_array($this->WhereLike))
         {
             if(strlen($this->Where) > 0)
                 $sql .= " AND ";
-            $sql .= $flagWhere .'(' . $this->WhereLike.')';
+            $sql .= $flagWhere;
             $flagWhere = " ";
+
+            $where_groups = [];
+            foreach ($this->WhereLike as $column => $conditions)
+            {
+                $where_groups[$column] = ' (' . implode(' OR ', $conditions) . ') ';
+            }
+            $sql .= implode("\n AND \n", $where_groups);
         }
         else {
             /*if(strlen($this->WhereLike) > 0 || strlen($this->Where) > 0)
@@ -187,9 +186,25 @@ class BaseModel extends PDO_DB
         {
             $sql .= $this->Group;
         }
-        if (strlen($this->having) > 0)
+        /** having
+        [
+            'genres_id' =>
+         * [
+         *      ...
+         * ]
+        ]
+         * */
+
+        if (is_array($this->having))
         {
-            $sql .= " HAVING " . $this->having;
+            $sql .= " HAVING ";
+            $having_groups = [];
+            foreach ($this->having as $column => $conditions)
+            {
+                $having_groups[$column] = ' (' . implode(' OR ', $conditions) . ') ';
+            }
+            $sql .= implode("\n AND \n", $having_groups);
+
         }
         if (strlen($this->Order) > 0) {
             $sql .= $this->Order;
@@ -245,12 +260,15 @@ class BaseModel extends PDO_DB
         $sql .= ") VALUES (";
 
         for($i = 0; $i < sizeof($this->addFields); $i++) {
-            $arrValues[] = $data[$this->addFields[$i]];
+            if(array_key_exists($this->addFields[$i], $data))
+                $arrValues[] = $data[$this->addFields[$i]];
+            else
+                $arrValues[] = $data[$this->alias .'.'. $this->addFields[$i]];
         }
         $sql .= ':'.implode(", :", $this->addFields);
         $sql .= '); ';
 
-        //echo $sql; die();
+        //echo $sql; print_r($data); die();
         $query = PDO_DB::getInstance()->prepare($sql);
         return $query->exec($data);
     }
@@ -286,7 +304,7 @@ class BaseModel extends PDO_DB
 
         //echo $sql;
         $query = PDO_DB::getInstance()->prepare($sql);
-        //print_r($sql); print_r($data); die;
+        //print_r($sql); print_r($data);
         $query->exec($data);
     }
 

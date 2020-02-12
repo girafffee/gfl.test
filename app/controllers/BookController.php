@@ -6,21 +6,25 @@ namespace App\controllers;
 
 use App\Base\BaseController;
 use App\Lib\Mailer;
+use App\models\Authors;
 use App\models\Books;
+use App\models\Genres;
 
 class BookController extends BaseController
 {
     public function index()
     {
         $table = new Books;
-        $table->table = 'book_genres bg';
+        $table->table = 'book_genres';
+        $table->alias = 'bg';
+
         $books = $table
             ->SelectWhat([
                 'id'        => 'b.id',
                 'title'     =>'b.title',
                 'desc_short' => 'b.desc_short',
-                'genres'    => 'GROUP_CONCAT(DISTINCT g.name)',
-                'authors'   => 'GROUP_CONCAT(DISTINCT a.name)'
+                'genres'    => 'GROUP_CONCAT(DISTINCT " ", g.name)',
+                'authors'   => 'GROUP_CONCAT(DISTINCT " ", a.name)'
             ])
             ->simpleJoin('
                 LEFT JOIN books b ON bg.book_id = b.id
@@ -38,11 +42,21 @@ class BookController extends BaseController
         else
             $books = array();
 
+        $genres_ob = new Genres();
+        $genres = $genres_ob->All();
+
+        $authors_ob = new Authors();
+        $authors = $authors_ob->All();
+
         $this->content = self::render ('catalog/all.tpl.php', [
-            'books' => $books
+            'books' => $books,
+            'genres' => $genres,
+            'authors' => $authors
         ]);
         return $this;
     }
+
+
 
     /**
      * @param $args array
@@ -61,14 +75,14 @@ class BookController extends BaseController
                 'id'        => 'b.id',
                 'title'     =>'b.title',
                 'desc_short' => 'b.desc_short',
-                'genres'    => 'GROUP_CONCAT(DISTINCT g.name)',
-                'authors'   => 'GROUP_CONCAT(DISTINCT a.name)'
+                'genres'    => 'GROUP_CONCAT(DISTINCT " ", g.name)',
+                'authors'   => 'GROUP_CONCAT(DISTINCT " ", a.name)'
             ])
             ->WhereEqually('b.status', Books::STATUS_ACTIVE)
             ->WhereLike('b.title', $args[0])
             ->WhereLike('b.desc_short', $args[0])
             ->havingLike('genres', $args[1])
-            ->havingLike('authors', $args[2], 'AND')
+            ->havingLike('authors', $args[2])
             ->simpleJoin('
                 LEFT JOIN books b ON bg.book_id = b.id
                 LEFT JOIN genres g ON bg.genre_id = g.id
@@ -100,8 +114,8 @@ class BookController extends BaseController
                 'desc_short' => 'b.desc_short',
                 'desc_full' => 'b.desc_full',
                 'created_at' => 'b.created_at',
-                'genres'    => 'GROUP_CONCAT(DISTINCT g.name)',
-                'authors'   => 'GROUP_CONCAT(DISTINCT a.name)'
+                'genres'    => 'GROUP_CONCAT(DISTINCT " ", g.name)',
+                'authors'   => 'GROUP_CONCAT(DISTINCT " ", a.name)'
             ])
             ->simpleJoin('
                 LEFT JOIN books b ON bg.book_id = b.id

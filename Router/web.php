@@ -17,8 +17,11 @@ Router::add('/', 'App\controllers\HomeController')
 Router::addGroup('/catalog-g/{search_string}/{genre_id}/{author_id}', 'App\controllers\BookController#search')
     ->name('catalog_search');
 
-Router::addGroup('/admin-g/{object}/{action}/{id}', 'App\controllers\AdminController')
+Router::addGroup('/admin-s/{object}/{action}/{id}', 'App\controllers\AdminController')
     ->name('admin_single');
+
+Router::addGroup('/admin-g/{object}/{action}', 'App\controllers\AdminController')
+    ->name('admin_group');
 
 Router::addGroup('/book/{action}/{id}', 'App\controllers\BookController')
     ->name('single_book');
